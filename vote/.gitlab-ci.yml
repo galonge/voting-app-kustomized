@@ -1,0 +1,51 @@
+stages:
+  - test
+  - build
+  - release
+  - config
+
+test:
+  stage: test
+  script:
+    - echo "some tests should be done..."
+  only:
+    - branches
+
+build:
+  stage: build
+  image: jdrouet/docker-with-buildx:20.10.19-0.9.1
+  services:
+    - docker:20.10-dind
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker buildx create --use
+    - docker buildx build --platform linux/arm64/v8,linux/amd64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG . --push
+  only:
+    - tags
+
+release:
+  image: node:16
+  stage: release
+  only:
+    refs:
+      - master
+  script:
+    - touch CHANGELOG.md
+    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/changelog
+    - npx semantic-release
+  artifacts:
+    paths:
+      - CHANGELOG.md
+
+update config:
+  stage: config
+  image: lucj/ci:1.0
+  script:
+    - git config --global user.email "devops@techwhale.io"
+    - git config --global user.name "TechWhale DevOps"
+    - git clone --depth 1 https://gitlab-ci-token:${GITLAB_TOKEN}@gitlab.com/voting-application/config.git
+    - cd config/acorn
+    - git commit --allow-empty -m "$CI_COMMIT_MESSAGE ($CI_PROJECT_NAME moved to $CI_COMMIT_TAG)"  
+    - git push origin master
+  only:
+    - tags

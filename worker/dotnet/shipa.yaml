@@ -1,0 +1,4 @@
+hooks:
+  build:
+    - dotnet restore
+    - dotnet publish -c Release -o out Worker.csproj

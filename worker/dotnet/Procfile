@@ -1,0 +1,1 @@
+worker: dotnet out/Worker.dll

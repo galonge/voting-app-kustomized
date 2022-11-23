@@ -1,0 +1,29 @@
+bases:
+  - ../../base
+resources:
+  - redis-deployment.yaml
+  - redis-service.yaml
+  - worker-deployment.yaml
+  - db-deployment.yaml
+  - db-service.yaml
+patches:
+  # Use v1 as image tag for vote Deployment
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: vote
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: registry.gitlab.com/voting-application/vote:v1
+  # Use v1 as image tag for result Deployment
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: result
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: registry.gitlab.com/voting-application/result:v1

@@ -1,0 +1,62 @@
+stages:
+  - release
+  - build
+  - config
+
+release:
+  image: node:16
+  stage: release
+  only:
+    refs:
+      - master
+  script:
+    - touch CHANGELOG.md
+    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/changelog
+    - npx semantic-release
+  artifacts:
+    paths:
+      - CHANGELOG.md
+
+build acorn app:
+  image: registry.gitlab.com/gitlab-org/cluster-integration/helm-install-image/releases/3.7.1-kube-1.20.11-alpine-3.14
+  stage: build
+  services:
+    - name: registry.gitlab.com/gitlab-org/cluster-integration/test-utils/k3s-gitlab-ci/releases/v1.25.0-k3s1
+      alias: k3s
+  script:
+    - |
+      git config --global user.email "devops@techwhale.io"
+      git config --global user.name "TechWhale DevOps"
+      git clone --depth 1 https://gitlab-ci-token:${GITLAB_TOKEN}@gitlab.com/voting-application/vote-ui.git
+      git clone --depth 1 https://gitlab-ci-token:${GITLAB_TOKEN}@gitlab.com/voting-application/vote.git
+      git clone --depth 1 https://gitlab-ci-token:${GITLAB_TOKEN}@gitlab.com/voting-application/worker.git
+      git clone --depth 1 https://gitlab-ci-token:${GITLAB_TOKEN}@gitlab.com/voting-application/result.git
+      git clone --depth 1 https://gitlab-ci-token:${GITLAB_TOKEN}@gitlab.com/voting-application/result-ui.git
+    - apk add curl
+    - cd acorn
+    - curl -f k3s:8081 > k3s.yaml
+    - export KUBECONFIG=$(pwd)/k3s.yaml
+    - sleep 30
+    - curl https://get.acorn.io | sh
+    - acorn install
+    - acorn login -u "lucj" -p "$DOCKERHUB_PASSWORD" docker.io
+    - mkdir test && cp Acornfile test/Acornfile && cd test
+    # - acorn build -t docker.io/lucj/voting:$CI_COMMIT_TAG -p linux/amd64 -p linux/arm64/v8 .
+    - acorn build -t docker.io/lucj/voting:$CI_COMMIT_TAG .
+    - acorn push docker.io/lucj/voting:$CI_COMMIT_TAG
+  only:
+    - tags
+
+update config:
+  stage: config
+  image: lucj/ci:1.0
+  script:
+    - git config --global user.email "devops@techwhale.io"
+    - git config --global user.name "TechWhale DevOps"
+    - git remote add gitlab_origin https://oauth2:${GITLAB_TOKEN}@gitlab.com/voting-application/config.git
+    - yq -i ".spec.image=\"docker.io/lucj/voting:${CI_COMMIT_TAG}\"" ./acorn/app.yaml
+    - git add ./acorn/app.yaml   
+    - git commit -m "Update app with tag $CI_COMMIT_TAG"
+    - git push gitlab_origin HEAD:master -o ci.skip
+  only:
+    - tags

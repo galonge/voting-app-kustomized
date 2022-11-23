@@ -1,0 +1,50 @@
+bases:
+  - ../../base
+resources:
+  - nats-deployment.yaml
+  - nats-service.yaml
+  - result-ui-deployment.yaml
+  - result-ui-service.yaml
+  - vote-ui-deployment.yaml
+  - vote-ui-service.yaml
+patches:
+  # Use v3 as image tag for vote Deployment
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: vote
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: registry.gitlab.com/voting-application/vote:v3
+  # Use v3 as image tag for result Deployment
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: result
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: registry.gitlab.com/voting-application/result:v3
+  # Change vote Service to ClusterIP type
+  - target:
+      kind: Service
+      name: vote
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: ClusterIP
+      - op: remove
+        path: /spec/ports/0/nodePort
+  # Change result Service to ClusterIP type
+  - target:
+      kind: Service
+      name: result
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: ClusterIP
+      - op: remove
+        path: /spec/ports/0/nodePort

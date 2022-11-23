@@ -1,0 +1,20 @@
+# Image registry with repository
+registry:  registry.gitlab.com/voting-application
+
+# Version of the VotingApp among v1, v2 and v3
+version: v2
+
+# Show images instead of labels
+images:
+  vote: false
+  result: false
+
+# Version of the worker among java, dotnet and go
+worker:
+  language: go
+
+# Ingress
+ingress: false
+
+# Serve over https
+tls: false

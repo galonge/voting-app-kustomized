@@ -1,0 +1,24 @@
+{{ if eq .Values.version "v3" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nats
+  name: nats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats
+  template:
+    metadata:
+      labels:
+        app: nats
+    spec:
+      containers:
+        - image: nats:2.2-alpine3.13
+          name: nats
+          ports:
+            - containerPort: 4222
+              name: nats
+{{ end }}

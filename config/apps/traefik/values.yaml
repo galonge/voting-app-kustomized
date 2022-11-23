@@ -1,0 +1,5 @@
+providers:
+  kubernetesIngress:
+    publishedService:
+      enabled: true
+

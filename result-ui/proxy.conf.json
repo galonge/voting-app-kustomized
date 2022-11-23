@@ -1,0 +1,8 @@
+{
+  "/socket.io": {
+    "target": "http://localhost:5001",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true
+  }
+}

@@ -1,0 +1,29 @@
+<!-- <div id="background-stats" style="opacity: {{opacity}}"> -->
+<div id="background-stats" [ngStyle]="{'opacity': opacity}">
+  <div id="background-stats-1" [ngStyle]="{'width': aPercent}">
+  </div>
+  <!--
+  -->
+  <div id="background-stats-2" [ngStyle]="{'width': bPercent}">
+  </div>
+</div>
+<div id="content-container">
+  <div id="content-container-center">
+    <div id="result">
+      <span *ngIf="total == 0">No votes yet</span>
+      <span *ngIf="total == 1">{{total}} vote</span>
+      <span *ngIf="total >= 2">{{total}} votes</span>
+    </div>
+    <div id="choice">
+      <div class="choice cats">
+        <div class="label">Cats</div>
+        <div class="stat">{{aPercent}}</div>
+      </div>
+      <div class="divider"></div>
+      <div class="choice dogs">
+        <div class="label">Dogs</div>
+        <div class="stat">{{bPercent}}</div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,5 @@
+**/shipa.yaml
+**/Procfile
+
+# rust local build
+**/target

@@ -1,0 +1,25 @@
+{{ if ne .Values.version "v1" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: result-ui
+  name: result-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: result-ui
+  template:
+    metadata:
+      labels:
+        app: result-ui
+    spec:
+      containers:
+        - image: {{ .Values.registry }}/result-ui:{{ if eq .Values.images.result true }}images{{ else }}latest{{ end }}
+          name: result-ui
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: result-ui
+{{ end }}

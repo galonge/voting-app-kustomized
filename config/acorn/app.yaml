@@ -1,0 +1,7 @@
+apiVersion: api.acorn.io/v1
+kind: App
+metadata:
+  name: vote
+  namespace: vote
+spec:
+  image: docker.io/lucj/voting:v1.0.26

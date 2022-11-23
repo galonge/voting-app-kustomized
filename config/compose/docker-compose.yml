@@ -1,0 +1,94 @@
+services:
+  vote:
+    build: ../../vote
+    # use python rather than gunicorn for local dev
+    command: python app.py
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../../vote:/app
+    networks:
+      - front-tier
+      - back-tier
+
+  vote-ui:
+    build: ../../vote-ui
+    depends_on:
+      vote:
+        condition: service_started
+    volumes:
+      - ../../vote-ui:/usr/share/nginx/html
+    ports:
+      - "5000:80"
+    networks:
+      - front-tier
+    restart: unless-stopped
+
+  result:
+    build: ../../result
+    # use nodemon rather than node for local dev
+    command: nodemon server.js
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ../../result:/app
+    networks:
+      - front-tier
+      - back-tier
+
+  result-ui:
+    build: ../../result-ui
+    depends_on:
+      result:
+        condition: service_started
+    ports:
+      - "5001:80"
+    networks:
+      - front-tier
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../../worker/${LANGUAGE:-go}
+      dockerfile: Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - back-tier
+
+  redis:
+    image: redis:7.0.5-alpine3.16
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: "5s"
+    ports:
+      - 6379:6379
+    networks:
+      - back-tier
+
+  db:
+    image: postgres:15.0-alpine3.16
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: "5s"
+    ports:
+      - 5432:5432
+    networks:
+      - back-tier
+
+volumes:
+  db-data:
+
+networks:
+  front-tier:
+  back-tier:

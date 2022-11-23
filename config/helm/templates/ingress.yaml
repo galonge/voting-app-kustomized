@@ -1,0 +1,28 @@
+{{ if eq .Values.ingress true }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: voting
+spec:
+  entryPoints:
+  {{- if eq .Values.tls true }}
+  - websecure
+  {{- else }}
+  - web
+  {{- end }}
+  routes:
+  - match: Host(`vote.techwhale.io`)
+    kind: Rule
+    services:
+    - name: vote-ui
+      port: 80
+  - match: Host(`result.techwhale.io`)
+    kind: Rule
+    services:
+    - name: result-ui
+      port: 80
+  {{- if eq .Values.tls true }}
+  tls:
+    certResolver: le
+  {{- end }}
+{{ end }}

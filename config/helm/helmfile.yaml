@@ -1,0 +1,8 @@
+releases:
+  - name: votingapp
+    namespace: vote
+    labels:
+      app: votingapp
+    chart: .
+    values:
+      - values.yaml

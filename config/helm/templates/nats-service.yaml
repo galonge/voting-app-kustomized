@@ -1,0 +1,16 @@
+{{ if eq .Values.version "v3" }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nats
+  name: nats
+spec:
+  type: ClusterIP
+  ports:
+    - name: "nats-service"
+      port: 4222
+      targetPort: 4222
+  selector:
+    app: nats
+{{ end }}
